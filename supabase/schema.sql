@@ -10,6 +10,7 @@ create table if not exists public.sessions (
   type text not null,
   minutes integer not null check (minutes > 0),
   notes text default '',
+  flagged boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -31,3 +32,11 @@ create policy "Users can update their own sessions"
 create policy "Users can delete their own sessions"
   on public.sessions for delete
   using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────
+-- MIGRATION: if your `sessions` table already exists (you ran the
+-- block above previously), the CREATE TABLE line above won't touch
+-- it. Run just this one line instead, once, to add the new column:
+--
+--   alter table public.sessions add column if not exists flagged boolean not null default false;
+-- ─────────────────────────────────────────────────────────────────

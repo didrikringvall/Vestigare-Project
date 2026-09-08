@@ -1,12 +1,22 @@
+import { useState } from 'react'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { typeColor } from '../lib/constants'
 
-export default function TypeBreakdown({ data, title = 'Where the hours go' }) {
+export default function Distribution({ monthData, allData, monthLabel }) {
+  const [view, setView] = useState('month') // 'month' | 'all'
+  const data = view === 'month' ? monthData : allData
+
   return (
     <div className="card">
-      <h2>{title}</h2>
+      <div className="dist-header">
+        <h2>Where the hours go</h2>
+        <div className="seg-toggle">
+          <button className={view === 'month' ? 'seg-active' : ''} onClick={() => setView('month')}>{monthLabel}</button>
+          <button className={view === 'all' ? 'seg-active' : ''} onClick={() => setView('all')}>All time</button>
+        </div>
+      </div>
       {data.length === 0 ? (
-        <p className="empty">No sessions logged yet.</p>
+        <p className="empty">No sessions logged {view === 'month' ? 'this month' : 'yet'}.</p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>

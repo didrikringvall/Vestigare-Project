@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 
 export default function Auth() {
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -19,7 +20,11 @@ export default function Auth() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
       } else {
-        const { error } = await supabase.auth.signUp({ email, password })
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { username: username.trim() } },
+        })
         if (error) throw error
         setInfo('Check your inbox to confirm your email, then sign in.')
       }
@@ -36,6 +41,12 @@ export default function Auth() {
         <span className="eyebrow">Vestigare</span>
         <h1>{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h1>
         <form onSubmit={handleSubmit}>
+          {mode === 'signup' && (
+            <div className="field">
+              <label>Username</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required minLength={2} />
+            </div>
+          )}
           <div className="field">
             <label>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />

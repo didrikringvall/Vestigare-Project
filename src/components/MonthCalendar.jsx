@@ -10,7 +10,7 @@ function level(mins) {
   return 4
 }
 
-export default function MonthCalendar({ viewYear, viewMonth, setViewYear, setViewMonth, dayTotals, selectedDate, onSelectDate }) {
+export default function MonthCalendar({ viewYear, viewMonth, setViewYear, setViewMonth, dayTotals, selectedDate, onSelectDate, onViewDay }) {
   const todayStr = fmt(new Date())
 
   const weeks = useMemo(() => {
@@ -79,10 +79,15 @@ export default function MonthCalendar({ viewYear, viewMonth, setViewYear, setVie
         </div>
       ))}
 
-      <div className="legend">
-        <span className="legend-swatch legend-today" />Today
-        <span className="legend-swatch legend-selected" />Selected
-        <span className="legend-swatch legend-logged" />Session logged
+      <div className="cal-footer">
+        <div className="legend">
+          <span className="legend-swatch legend-today" />Today
+          <span className="legend-swatch legend-selected" />Selected
+          <span className="legend-swatch legend-logged" />Session logged
+        </div>
+        <button type="button" className="view-day-btn" onClick={onViewDay}>
+          View sessions for this day
+        </button>
       </div>
     </section>
   )

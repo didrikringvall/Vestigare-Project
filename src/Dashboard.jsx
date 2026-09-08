@@ -4,9 +4,10 @@ import { fmt, addDays, startOfWeek, pad, WEEKDAY_LABELS, MONTH_LABELS } from './
 import StatsHeader from './components/StatsHeader'
 import QuickAddForm from './components/QuickAddForm'
 import MonthCalendar from './components/MonthCalendar'
+import DayDetail from './components/DayDetail'
+import Distribution from './components/Distribution'
 import Heatmap from './components/Heatmap'
 import WeekChart from './components/WeekChart'
-import TypeBreakdown from './components/TypeBreakdown'
 import CourseBreakdown from './components/CourseBreakdown'
 import RecentLog from './components/RecentLog'
 
@@ -20,6 +21,13 @@ export default function Dashboard({ session }) {
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState(fmt(today))
+  const [showDayDetail, setShowDayDetail] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(12)
+
+  const [username, setUsername] = useState(session.user.user_metadata?.username || '')
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState(username)
+  const displayName = username || session.user.email.split('@')[0]
 
   useEffect(() => {
     loadSessions()
@@ -48,6 +56,22 @@ export default function Dashboard({ session }) {
     const { error } = await supabase.from('sessions').delete().eq('id', id)
     if (error) { setError(error.message); return }
     setSessions((prev) => prev.filter((s) => s.id !== id))
+  }
+
+  async function toggleFlag(id, current) {
+    setError('')
+    const { error } = await supabase.from('sessions').update({ flagged: !current }).eq('id', id)
+    if (error) { setError(error.message); return }
+    setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, flagged: !current } : s)))
+  }
+
+  async function saveUsername() {
+    const trimmed = nameDraft.trim()
+    setEditingName(false)
+    if (!trimmed || trimmed === username) return
+    const { error } = await supabase.auth.updateUser({ data: { username: trimmed } })
+    if (error) { setError(error.message); return }
+    setUsername(trimmed)
   }
 
   const dayTotals = useMemo(() => {
@@ -91,7 +115,6 @@ export default function Dashboard({ session }) {
     [sessions, year]
   )
 
-  // sessions within the month currently shown in the calendar
   const monthKey = `${viewYear}-${pad(viewMonth + 1)}`
   const monthSessions = useMemo(
     () => sessions.filter((s) => s.date.startsWith(monthKey)),
@@ -105,7 +128,7 @@ export default function Dashboard({ session }) {
       .sort((a, b) => b.hours - a.hours)
   }, [monthSessions])
 
-  const typeBreakdown = useMemo(() => {
+  const allTypeBreakdown = useMemo(() => {
     const map = {}
     for (const s of sessions) map[s.type] = (map[s.type] || 0) + s.minutes
     return Object.entries(map)
@@ -122,16 +145,47 @@ export default function Dashboard({ session }) {
       .slice(0, 8)
   }, [sessions])
 
-  const recent = useMemo(
-    () => [...sessions].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 12),
+  const daySessions = useMemo(
+    () => sessions.filter((s) => s.date === selectedDate),
+    [sessions, selectedDate]
+  )
+
+  const sortedAll = useMemo(
+    () => [...sessions].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
     [sessions]
   )
+  const recent = sortedAll.slice(0, visibleCount)
+  const hasMoreRecent = sortedAll.length > visibleCount
 
   return (
     <div className="ledger-app">
       <header className="hero">
         <div className="hero-top">
-          <span className="eyebrow">Vestigare · {session.user.email}</span>
+          <div>
+            <h1 className="brand-title">Vestigare</h1>
+            <p className="greeting">
+              Welcome back,{' '}
+              {editingName ? (
+                <input
+                  className="name-input"
+                  autoFocus
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && saveUsername()}
+                  onBlur={saveUsername}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="name-btn"
+                  onClick={() => { setNameDraft(username); setEditingName(true) }}
+                  title="Click to edit your name"
+                >
+                  {displayName}
+                </button>
+              )}
+            </p>
+          </div>
           <button className="link-btn signout" onClick={() => supabase.auth.signOut()}>Sign out</button>
         </div>
         <StatsHeader
@@ -151,23 +205,43 @@ export default function Dashboard({ session }) {
         dayTotals={dayTotals}
         selectedDate={selectedDate}
         onSelectDate={setSelectedDate}
+        onViewDay={() => setShowDayDetail(true)}
       />
 
       <QuickAddForm date={selectedDate} onAdd={addSession} />
       {error && <p className="save-error">{error}</p>}
 
-      <TypeBreakdown data={monthTypeBreakdown} title={`Distribution — ${MONTH_LABELS[viewMonth]} ${viewYear}`} />
+      {showDayDetail && (
+        <DayDetail
+          date={selectedDate}
+          sessions={daySessions}
+          onClose={() => setShowDayDetail(false)}
+          onDelete={deleteSession}
+          onToggleFlag={toggleFlag}
+        />
+      )}
+
+      <Distribution
+        monthData={monthTypeBreakdown}
+        allData={allTypeBreakdown}
+        monthLabel={`${MONTH_LABELS[viewMonth]} ${viewYear}`}
+      />
 
       <section className="grid-2col">
         <WeekChart data={weekChartData} thisWeekTotal={thisWeekTotal} lastWeekTotal={lastWeekTotal} hasData={sessions.length > 0} />
-        <TypeBreakdown data={typeBreakdown} />
+        <CourseBreakdown data={courseBreakdown} />
       </section>
-
-      <CourseBreakdown data={courseBreakdown} />
 
       <Heatmap year={year} setYear={setYear} dayTotals={dayTotals} />
 
-      <RecentLog sessions={recent} loading={loading} onDelete={deleteSession} />
+      <RecentLog
+        sessions={recent}
+        loading={loading}
+        onDelete={deleteSession}
+        onToggleFlag={toggleFlag}
+        hasMore={hasMoreRecent}
+        onShowMore={() => setVisibleCount((v) => v + 12)}
+      />
     </div>
   )
 }
