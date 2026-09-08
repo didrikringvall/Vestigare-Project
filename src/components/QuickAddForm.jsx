@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { fmt } from '../lib/dates'
-import { TYPES, DURATION_CHIPS } from '../lib/constants'
+import { TYPES, DURATION_CHIPS, COURSES } from '../lib/constants'
 
-export default function QuickAddForm({ courses, onAdd }) {
-  const [date, setDate] = useState(fmt(new Date()))
-  const [course, setCourse] = useState('')
+export default function QuickAddForm({ date, onAdd }) {
+  const [course, setCourse] = useState(COURSES[0])
   const [type, setType] = useState(TYPES[0].id)
   const [hours, setHours] = useState(0)
   const [minutes, setMinutes] = useState(30)
@@ -19,16 +17,22 @@ export default function QuickAddForm({ courses, onAdd }) {
     setNotes('')
   }
 
+  const displayDate = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+  })
+
   return (
     <section className="quick-add card">
-      <h2>Log a session</h2>
+      <div className="quick-add-header">
+        <h2>Log a session</h2>
+        <span className="log-for-date mono">for {displayDate}</span>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label>Course</label>
-          <input list="course-list" value={course} onChange={(e) => setCourse(e.target.value)} placeholder="e.g. Linear Algebra" required />
-          <datalist id="course-list">
-            {courses.map((c) => <option key={c} value={c} />)}
-          </datalist>
+          <select value={course} onChange={(e) => setCourse(e.target.value)}>
+            {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
         <div className="field">
           <label>Type</label>
@@ -36,12 +40,6 @@ export default function QuickAddForm({ courses, onAdd }) {
             {TYPES.map((t) => <option key={t.id} value={t.id}>{t.id}</option>)}
           </select>
         </div>
-        <div className="field">
-          <label>Date</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={fmt(new Date())} />
-        </div>
-        <button type="submit" className="add-btn"><Plus size={16} />Add entry</button>
-
         <div className="field">
           <label>Duration</label>
           <div className="duration-row">
@@ -51,6 +49,8 @@ export default function QuickAddForm({ courses, onAdd }) {
             <span className="mono unit">m</span>
           </div>
         </div>
+        <button type="submit" className="add-btn"><Plus size={16} />Add entry</button>
+
         <div className="notes-field field">
           <label>Notes (optional)</label>
           <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="what did you cover?" />

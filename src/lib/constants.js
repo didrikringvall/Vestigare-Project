@@ -1,3 +1,28 @@
+// Stockholm School of Economics — BSc in Business & Economics (BE), the
+// mandatory foundation courses from semesters 1-3. Edit this list freely
+// if your actual schedule looks different.
+export const COURSES = [
+  "BE101 Management I: Organizing",
+  "BE102 Management II: Leadership",
+  "BE201 Marketing",
+  "BE202 Strategy",
+  "BE301 Accounting I: Understanding Financial Reports",
+  "BE302 Accounting II: Analyzing Performance",
+  "BE401 Finance I",
+  "BE402 Finance II",
+  "BE501 Economics I: Microeconomics",
+  "BE502 Economics II: Macroeconomics",
+  "BE601 Data Analytics I",
+  "BE602 Data Analytics II",
+  "BE603 Data Analytics III",
+  "BE671 Business Law I",
+  "BE672 Business Law II",
+  "BE701 Innovation",
+  "BE801 Global Challenges I",
+  "BE802 Global Challenges II",
+  "BE003 B&E Reflection Series",
+];
+
 export const TYPES = [
   { id: 'Reading', color: '#D69A2D' },
   { id: 'Problem sets', color: '#2F6F63' },

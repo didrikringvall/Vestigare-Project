@@ -1,18 +1,18 @@
 :root {
-  --paper: #EEF0E6;
-  --card: #F8F9F3;
-  --ink: #1F2A22;
-  --ink-soft: #55654A;
-  --line: #CBD1C0;
-  --amber: #D69A2D;
-  --amber-deep: #A8721B;
+  --paper: #FBF3D9;
+  --card: #FFFBEC;
+  --ink: #2A2410;
+  --ink-soft: #7A6A2E;
+  --line: #E9D48A;
+  --amber: #F0B429;
+  --amber-deep: #C6890A;
   --teal: #2F6F63;
   --rose: #B44B3D;
-  --lvl0: #E4E7DA;
-  --lvl1: #EFD9A6;
-  --lvl2: #E0B65B;
-  --lvl3: #C98F2E;
-  --lvl4: #A8721B;
+  --lvl0: #F3E8BE;
+  --lvl1: #F3D170;
+  --lvl2: #EFBB3A;
+  --lvl3: #DE9F16;
+  --lvl4: #C6890A;
 }
 
 * { box-sizing: border-box; }
@@ -54,7 +54,9 @@ h1, h2 { font-family: 'Fraunces', serif; margin: 0; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 22px;
 }
+.hero-top .eyebrow { font-size: 12px; }
 
 .hero h1 {
   font-size: clamp(26px, 4vw, 38px);
@@ -174,6 +176,68 @@ h1, h2 { font-family: 'Fraunces', serif; margin: 0; }
   color: var(--teal);
   margin-top: 10px;
 }
+
+.quick-add-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.log-for-date { font-size: 12px; color: var(--ink-soft); }
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cal-header button {
+  background: none; border: 1px solid var(--line); border-radius: 5px;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--ink);
+}
+.cal-header button:hover { border-color: var(--amber-deep); }
+.cal-header h2 { font-size: 17px; }
+
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
+.cal-weekdays span {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; }
+
+.cal-day {
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  color: var(--ink);
+  padding: 0;
+}
+.cal-day:hover:not(:disabled) { border-color: var(--amber-deep); }
+.cal-day-out { border-color: transparent; background: transparent; color: var(--line); cursor: default; }
+.cal-day-today { box-shadow: inset 0 0 0 2px var(--ink); }
+.cal-day-selected {
+  box-shadow: inset 0 0 0 2px var(--amber-deep);
+  background: var(--amber) !important;
+  color: var(--ink);
+  font-weight: 600;
+}
+.cal-day-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--amber-deep); margin-top: 2px; }
+.cal-day-selected .cal-day-dot { background: var(--ink); }
+
+.legend-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 4px 0 10px; vertical-align: middle; }
+.legend-swatch:first-child { margin-left: 0; }
+.legend-today { box-shadow: inset 0 0 0 2px var(--ink); }
+.legend-selected { background: var(--amber); box-shadow: inset 0 0 0 2px var(--amber-deep); }
+.legend-logged { background: var(--lvl3); }
 
 .heatmap-header {
   display: flex;

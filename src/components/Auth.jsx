@@ -33,7 +33,7 @@ export default function Auth() {
   return (
     <div className="auth-screen">
       <div className="auth-card">
-        <span className="eyebrow">Study Ledger</span>
+        <span className="eyebrow">Vestigare</span>
         <h1>{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h1>
         <form onSubmit={handleSubmit}>
           <div className="field">

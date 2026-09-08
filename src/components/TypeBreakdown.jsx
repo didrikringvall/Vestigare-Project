@@ -1,10 +1,10 @@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { typeColor } from '../lib/constants'
 
-export default function TypeBreakdown({ data }) {
+export default function TypeBreakdown({ data, title = 'Where the hours go' }) {
   return (
     <div className="card">
-      <h2>Where the hours go</h2>
+      <h2>{title}</h2>
       {data.length === 0 ? (
         <p className="empty">No sessions logged yet.</p>
       ) : (

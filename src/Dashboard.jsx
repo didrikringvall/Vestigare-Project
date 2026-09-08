@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from './lib/supabaseClient'
-import { fmt, addDays, startOfWeek, WEEKDAY_LABELS } from './lib/dates'
+import { fmt, addDays, startOfWeek, pad, WEEKDAY_LABELS, MONTH_LABELS } from './lib/dates'
 import StatsHeader from './components/StatsHeader'
 import QuickAddForm from './components/QuickAddForm'
+import MonthCalendar from './components/MonthCalendar'
 import Heatmap from './components/Heatmap'
 import WeekChart from './components/WeekChart'
 import TypeBreakdown from './components/TypeBreakdown'
@@ -14,6 +15,11 @@ export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [year, setYear] = useState(new Date().getFullYear())
+
+  const today = new Date()
+  const [viewYear, setViewYear] = useState(today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(today.getMonth())
+  const [selectedDate, setSelectedDate] = useState(fmt(today))
 
   useEffect(() => {
     loadSessions()
@@ -50,8 +56,6 @@ export default function Dashboard({ session }) {
     return map
   }, [sessions])
 
-  const courses = useMemo(() => [...new Set(sessions.map((s) => s.course))].sort(), [sessions])
-
   const todayStr = fmt(new Date())
   const todayMinutes = dayTotals[todayStr] || 0
 
@@ -87,6 +91,20 @@ export default function Dashboard({ session }) {
     [sessions, year]
   )
 
+  // sessions within the month currently shown in the calendar
+  const monthKey = `${viewYear}-${pad(viewMonth + 1)}`
+  const monthSessions = useMemo(
+    () => sessions.filter((s) => s.date.startsWith(monthKey)),
+    [sessions, monthKey]
+  )
+  const monthTypeBreakdown = useMemo(() => {
+    const map = {}
+    for (const s of monthSessions) map[s.type] = (map[s.type] || 0) + s.minutes
+    return Object.entries(map)
+      .map(([name, mins]) => ({ name, hours: +(mins / 60).toFixed(1) }))
+      .sort((a, b) => b.hours - a.hours)
+  }, [monthSessions])
+
   const typeBreakdown = useMemo(() => {
     const map = {}
     for (const s of sessions) map[s.type] = (map[s.type] || 0) + s.minutes
@@ -113,11 +131,9 @@ export default function Dashboard({ session }) {
     <div className="ledger-app">
       <header className="hero">
         <div className="hero-top">
-          <span className="eyebrow">Study Ledger</span>
+          <span className="eyebrow">Vestigare · {session.user.email}</span>
           <button className="link-btn signout" onClick={() => supabase.auth.signOut()}>Sign out</button>
         </div>
-        <h1>Track the hours nobody sees.</h1>
-        <p className="sub">Signed in as {session.user.email}</p>
         <StatsHeader
           todayMinutes={todayMinutes}
           thisWeekTotal={thisWeekTotal}
@@ -127,10 +143,20 @@ export default function Dashboard({ session }) {
         />
       </header>
 
-      <QuickAddForm courses={courses} onAdd={addSession} />
+      <MonthCalendar
+        viewYear={viewYear}
+        viewMonth={viewMonth}
+        setViewYear={setViewYear}
+        setViewMonth={setViewMonth}
+        dayTotals={dayTotals}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+      />
+
+      <QuickAddForm date={selectedDate} onAdd={addSession} />
       {error && <p className="save-error">{error}</p>}
 
-      <Heatmap year={year} setYear={setYear} dayTotals={dayTotals} />
+      <TypeBreakdown data={monthTypeBreakdown} title={`Distribution — ${MONTH_LABELS[viewMonth]} ${viewYear}`} />
 
       <section className="grid-2col">
         <WeekChart data={weekChartData} thisWeekTotal={thisWeekTotal} lastWeekTotal={lastWeekTotal} hasData={sessions.length > 0} />
@@ -138,6 +164,8 @@ export default function Dashboard({ session }) {
       </section>
 
       <CourseBreakdown data={courseBreakdown} />
+
+      <Heatmap year={year} setYear={setYear} dayTotals={dayTotals} />
 
       <RecentLog sessions={recent} loading={loading} onDelete={deleteSession} />
     </div>
